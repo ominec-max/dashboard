@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Executivo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e0;min-height:100vh;font-size:15px}
+.topbar{background:#000;border-bottom:0.5px solid #222;padding:13px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:8px}
+.topbar-title{font-size:15px;font-weight:500;color:#e2e2e0;cursor:pointer}
+.topbar-title:hover{color:#fff}
+.topbar-date{font-size:11px;color:#555}
+.edit-icon{font-size:11px;color:#333;cursor:pointer;padding:2px 5px;border-radius:4px}
+.edit-icon:hover{color:#777;background:#1a1a1a}
+.wrapper{max-width:100%;margin:0;padding:28px 36px}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:#1a1a1a;border-radius:10px;padding:3px;margin-bottom:20px;border:0.5px solid #222}
+.tab-wrap{flex:1;display:flex;align-items:center;position:relative}
+.tab{flex:1;text-align:center;padding:8px 6px;font-size:13px;cursor:pointer;border:none;background:none;color:#555;border-radius:8px;font-family:inherit;font-weight:400;transition:all 0.12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab.active{background:#2a2a2a;color:#e2e2e0;font-weight:500}
+.tab:hover:not(.active){color:#bbb}
+.tab-pencil{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:10px;color:#2a2a2a;padding:2px 3px;border-radius:3px;opacity:0;transition:opacity 0.1s;line-height:1}
+.tab-wrap:hover .tab-pencil{opacity:1;color:#555}
+.tab-pencil:hover{color:#aaa!important}
+
+/* Cards */
+.card{background:#161616;border:0.5px solid #222;border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:500;color:#e2e2e0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric{background:#161616;border-radius:12px;padding:16px;border:0.5px solid #222}
+.metric-label{font-size:11px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.metric-value{font-size:26px;font-weight:500;color:#e2e2e0;line-height:1}
+.metric-sub{font-size:11px;color:#3a3a3a;margin-top:4px}
+
+/* Buttons */
+.btn{padding:7px 16px;font-size:12px;border:0.5px solid #333;border-radius:8px;cursor:pointer;background:#1e1e1e;color:#aaa;font-family:inherit;transition:all 0.12s}
+.btn:hover{background:#2a2a2a;color:#e2e2e0}
+.btn-primary{background:#e2e2e0;color:#0d0d0d;border-color:#e2e2e0;font-weight:500}
+.btn-primary:hover{background:#fff}
+.btn-sm{padding:4px 11px;font-size:11px}
+.btn-danger{color:#e24b4a;border-color:#3d1f1f;background:#1e1e1e}
+.btn-danger:hover{background:#2a1515}
+.btn-ghost{background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:12px;padding:4px 8px;border-radius:6px}
+.btn-ghost:hover{color:#e2e2e0;background:#1e1e1e}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+
+/* Category colors — cycling through 8 options */
+.cat-0{background:#0c1f2e;color:#5fa8e0}
+.cat-1{background:#0f1f0a;color:#6dbf5a}
+.cat-2{background:#2a1e00;color:#c49a3a}
+.cat-3{background:#1a1630;color:#9b8ee0}
+.cat-4{background:#2a0f0f;color:#e07070}
+.cat-5{background:#0a1f18;color:#4ecfa0}
+.cat-6{background:#1f1018;color:#e07ab0}
+.cat-7{background:#1a1400;color:#d4b84a}
+
+.badge-ag{background:#2a1e00;color:#c49a3a}
+.badge-done{background:#0f1f0a;color:#6dbf5a}
+.badge-canc{background:#2a0f0f;color:#e07070}
+.badge-high{background:#2a0f0f;color:#e07070}
+.badge-med{background:#2a1e00;color:#c49a3a}
+.badge-low{background:#0c1f2e;color:#5fa8e0}
+
+/* Rows */
+.item-row{display:flex;align-items:flex-start;gap:12px;padding:11px 8px;border-radius:10px;cursor:pointer;transition:background 0.1s;margin:0 -8px}
+.item-row:hover{background:#1e1e1e}
+.date-box{min-width:44px;text-align:center;background:#1e1e1e;border-radius:9px;padding:6px 4px;flex-shrink:0;border:0.5px solid #222}
+.date-day{font-size:19px;font-weight:500;line-height:1;color:#e2e2e0}
+.date-month{font-size:10px;color:#555;text-transform:uppercase}
+.item-info{flex:1;min-width:0}
+.item-title{font-size:13px;font-weight:500;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e2e0}
+.item-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* Todo */
+.todo-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid #1e1e1e}
+.todo-row:last-child{border-bottom:none}
+.todo-check{width:18px;height:18px;border:1.5px solid #444;border-radius:5px;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.1s}
+.todo-check.checked{background:#e2e2e0;border-color:#e2e2e0;color:#0d0d0d}
+.todo-done{text-decoration:line-through;color:#3a3a3a}
+.flag{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:18px}
+.flag-high{background:#e24b4a}.flag-med{background:#ef9f27}.flag-low{background:#378add}
+
+/* Forms */
+input,select,textarea{width:100%;padding:8px 11px;border:0.5px solid #2a2a2a;border-radius:8px;font-size:13px;background:#1e1e1e;color:#e2e2e0;font-family:inherit;outline:none;transition:border 0.1s}
+input:focus,select:focus,textarea:focus{border-color:#555}
+select option{background:#1e1e1e}
+textarea{resize:vertical;min-height:90px;line-height:1.6}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-lbl{font-size:11px;color:#555;margin-bottom:4px;font-weight:500;display:block}
+.form-grp{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.modal{background:#161616;border:0.5px solid #2a2a2a;border-radius:14px;padding:18px 20px;margin-bottom:16px}
+
+/* Calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-hdr{text-align:center;font-size:11px;color:#555;padding:6px 0;font-weight:500}
+.cal-day{min-height:36px;padding:5px;border-radius:7px;text-align:center;font-size:12px;cursor:pointer;position:relative;transition:background 0.1s;color:#e2e2e0}
+.cal-day:hover{background:#222}
+.cal-day.today{background:#e2e2e0;color:#0d0d0d;font-weight:500}
+.cal-day.has-item::after{content:'';width:4px;height:4px;border-radius:50%;background:#5fa8e0;position:absolute;bottom:3px;left:50%;transform:translateX(-50%)}
+.cal-day.today.has-item::after{background:#0d0d0d}
+.cal-day.other-month{color:#2a2a2a}
+
+/* Filters */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filter-btn{padding:4px 12px;font-size:11px;border:0.5px solid #222;border-radius:20px;cursor:pointer;background:#161616;color:#555;font-family:inherit;transition:all 0.1s}
+.filter-btn.active{background:#e2e2e0;color:#0d0d0d;border-color:#e2e2e0}
+.filter-btn:hover:not(.active){background:#222;color:#bbb}
+
+/* File upload */
+.drop-zone{border:1.5px dashed #2a2a2a;border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:10px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:#555;background:#1e1e1e}
+.file-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #1e1e1e}
+.file-row:last-child{border-bottom:none}
+.file-ic{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.fic-pdf{background:#2a0f0f;color:#e07070}.fic-doc{background:#0c1f2e;color:#5fa8e0}.fic-xls{background:#0a1f18;color:#4ecfa0}.fic-img{background:#0f1f0a;color:#6dbf5a}.fic-oth{background:#1a1a1a;color:#777}
+.upbar{width:100%;height:3px;background:#222;border-radius:2px;margin-top:6px}
+.upbar-fill{height:100%;background:#5fa8e0;border-radius:2px;transition:width 0.3s}
+
+/* Settings */
+.set-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid #1e1e1e}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:12px;color:#555;min-width:130px;flex-shrink:0}
+.cat-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#555;cursor:pointer;margin-bottom:16px}
+.back-btn:hover{color:#e2e2e0}
+.divider{border:none;border-top:0.5px solid #1e1e1e;margin:12px 0}
+.empty{text-align:center;padding:24px;color:#333;font-size:13px}
+.section-lbl{font-size:11px;font-weight:500;color:#555;text-transform:uppercase;letter-spacing:0.05em}
+.pend-dot{font-size:10px;color:#c49a3a}
+
+@media(max-width:720px){.metrics{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.wrapper{padding:14px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title" id="top-title">Dashboard Executivo</div>
+    <span class="edit-icon" onclick="editTitle()" title="Renomear">✎</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="topbar-date" id="top-date"></div>
+    <button class="btn btn-sm" onclick="goSettings()" style="font-size:11px;padding:4px 10px">⚙ Configurações</button>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+</div>
+
+<script>
+// ── IndexedDB ──────────────────────────────────────────────
+let db=null;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('ExecDashFiles',1);r.onupgradeneeded=e=>e.target.result.createObjectStore('files',{keyPath:'id',autoIncrement:true});r.onsuccess=e=>{db=e.target.result;res();};r.onerror=()=>rej();});}
+async function dbAdd(rec){return new Promise((res,rej)=>{const r=db.transaction('files','readwrite').objectStore('files').add(rec);r.onsuccess=()=>res(r.result);r.onerror=()=>rej();});}
+async function dbGet(id){return new Promise((res,rej)=>{const r=db.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej();});}
+async function dbDel(id){return new Promise((res,rej)=>{const r=db.transaction('files','readwrite').objectStore('files').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej();});}
+
+// ── Constants ──────────────────────────────────────────────
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WDAYS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const PRIOS=[{id:'high',label:'Alta',cls:'badge-high'},{id:'med',label:'Média',cls:'badge-med'},{id:'low',label:'Baixa',cls:'badge-low'}];
+const CAT_COLORS=['cat-0','cat-1','cat-2','cat-3','cat-4','cat-5','cat-6','cat-7'];
+const TAB_IDS=['overview','items','calendar','todos'];
+
+// ── Default data ───────────────────────────────────────────
+function defaultData(){
+  return {
+    dashTitle:'Dashboard Executivo',
+    tabNames:['Visão Geral','Assuntos','Calendário','Pendências'],
+    categories:[],   // user creates their own
+    items:[],
+    todos:[],
+    nextItemId:1,
+    nextTodoId:1,
+    nextCatId:1,
+  };
+}
+
+// ── Load data ──────────────────────────────────────────────
+let D;
+try{const s=localStorage.getItem('exec_v5');D=s?JSON.parse(s):defaultData();}catch(e){D=defaultData();}
+['dashTitle','tabNames','categories','items','todos','nextItemId','nextTodoId','nextCatId'].forEach(k=>{if(D[k]==null)D[k]=defaultData()[k];});
+
+function save(){try{localStorage.setItem('exec_v5',JSON.stringify(D));}catch(e){}}
+
+// ── State ──────────────────────────────────────────────────
+let S={tab:'overview',catFilter:'all',selected:null,selectedCat:null,showNewItem:false,showNewTodo:false,editingTodo:null,calY:new Date().getFullYear(),calM:new Date().getMonth()};
+
+// ── Init ───────────────────────────────────────────────────
+document.getElementById('top-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('top-title').textContent=D.dashTitle;
+
+// ── Helpers ────────────────────────────────────────────────
+function getCat(id){return D.categories.find(c=>c.id===id);}
+function getCatLabelById(id){const c=D.categories.find(x=>x.id==id);return c?c.name:'—';}
+function catBadge(catId){const c=getCat(catId);if(!c)return '';const cl=CAT_COLORS[c.colorIdx%8];return `<span class="badge ${cl}">${c.name}</span>`;}
+function statusBadge(s){return s==='done'?'<span class="badge badge-done">Realizado</span>':s==='canc'?'<span class="badge badge-canc">Cancelado</span>':s==='none'?'<span class="badge" style="background:#1a1a1a;color:#555">Sem data</span>':'<span class="badge badge-ag">Agendado</span>';}
+function getPrio(id){return PRIOS.find(p=>p.id===id)||PRIOS[1];}
+function fmtDate(d){if(!d)return '';const[y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;}
+function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return Math.round(b/1024)+'KB';return (b/1048576).toFixed(1)+'MB';}
+function getMeetingTitle(id){const m=D.items.find(x=>x.id==id);return m?m.title:'—';}
+function fileIcon(name){const e=(name.split('.').pop()||'').toLowerCase();if(e==='pdf')return ['fic-pdf','PDF'];if(['doc','docx'].includes(e))return ['fic-doc','DOC'];if(['xls','xlsx'].includes(e))return ['fic-xls','XLS'];if(['png','jpg','jpeg','gif','webp'].includes(e))return ['fic-img','IMG'];return ['fic-oth','FILE'];}
+
+// ── Title edit ─────────────────────────────────────────────
+window.editTitle=()=>{
+  const el=document.getElementById('top-title'),cur=D.dashTitle;
+  const inp=document.createElement('input');
+  inp.value=cur;inp.style.cssText='background:#111;color:#e2e2e0;border:1px solid #555;border-radius:6px;padding:3px 10px;font-size:15px;font-weight:500;font-family:inherit;outline:none;width:230px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  const done=()=>{const v=inp.value.trim()||cur;D.dashTitle=v;save();const nd=document.createElement('div');nd.id='top-title';nd.className='topbar-title';nd.textContent=v;inp.replaceWith(nd);};
+  inp.onblur=done;inp.onkeydown=e=>{if(e.key==='Enter'||e.key==='Escape')done();};
+};
+
+// ── Tabs ───────────────────────────────────────────────────
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=TAB_IDS.map((id,i)=>`
+    <div class="tab-wrap">
+      <button class="tab ${S.tab===id?'active':''}" onclick="goTab('${id}')">${D.tabNames[i]}</button>
+      <button class="tab-pencil" onclick="renameTab(${i})" title="Renomear">✎</button>
+    </div>`).join('');
+}
+window.renameTab=i=>{
+  const n=prompt(`Novo nome para "${D.tabNames[i]}":`,D.tabNames[i]);
+  if(n&&n.trim()){D.tabNames[i]=n.trim();save();renderTabs();}
+};
+function goTab(t){S.tab=t;S.selected=null;S.showNewItem=false;S.showNewTodo=false;renderTabs();render();}
+window.goSettings=()=>{S.tab='settings';S.selected=null;renderTabs();render();}
+
+// ── Render dispatcher ──────────────────────────────────────
+function render(){
+  const el=document.getElementById('content');
+  if(S.tab==='overview')el.innerHTML=renderOverview();
+  else if(S.tab==='items')el.innerHTML=S.selected!==null?renderDetail():renderItems();
+  else if(S.tab==='calendar')el.innerHTML=renderCalendar();
+  else if(S.tab==='todos')el.innerHTML=renderTodos();
+  else if(S.tab==='settings')el.innerHTML=renderSettings();
+  else if(S.tab==='cattodos')el.innerHTML=renderCatTodos();
+}
+
+// ── Overview ───────────────────────────────────────────────
+function buildPieChart(data){
+  // data = [{label, value, color}]
+  const total=data.reduce((s,d)=>s+d.value,0);
+  if(!total)return '<div class="empty" style="padding:2rem">Nenhuma pendência cadastrada ainda</div>';
+  const cx=120,cy=120,r=90,gap=0.025;
+  let angle=-Math.PI/2;
+  let slices='',labels='';
+  data.forEach((d,i)=>{
+    const slice=2*Math.PI*(d.value/total);
+    const a1=angle+gap/2, a2=angle+slice-gap/2;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const large=slice>Math.PI?1:0;
+    const mid=angle+slice/2;
+    const lx=cx+(r+22)*Math.cos(mid),ly=cy+(r+22)*Math.sin(mid);
+    slices+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${d.color}" opacity="0.9" style="cursor:pointer" onclick="viewCatTodos(${d.id})"><title>${d.label}: ${d.value}</title></path>`;
+    if(d.value/total>0.05){
+      labels+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#e2e2e0">${d.value}</text>`;
+    }
+    angle+=slice;
+  });
+  return `<svg viewBox="0 0 240 240" style="width:240px;height:240px;flex-shrink:0">${slices}${labels}</svg>`;
+}
+
+function renderOverview(){
+  const pendOpen=D.todos.filter(t=>!t.done).length;
+  const highPend=D.todos.filter(t=>!t.done&&t.prio==='high');
+  const upcoming=D.items.filter(m=>m.status==='ag'&&m.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+
+  // Build pie data — pendências per category
+  const PIE_COLORS=['#5fa8e0','#6dbf5a','#c49a3a','#9b8ee0','#e07070','#4ecfa0','#e07ab0','#d4b84a'];
+  const pieData=D.categories.map((c,i)=>{
+    const catItems=D.items.filter(m=>parseInt(m.cat)===parseInt(c.id));
+    const catItemIds=new Set(catItems.map(m=>m.id));
+    const count=D.todos.filter(t=>!t.done&&(parseInt(t.catId)===parseInt(c.id)||catItemIds.has(parseInt(t.itemId)))).length;
+    return {id:c.id,label:c.name,value:count,color:PIE_COLORS[i%8]};
+  }).filter(d=>d.value>0);
+
+  const uncategorized=D.todos.filter(t=>!t.done&&!t.catId&&!t.itemId).length;
+  if(uncategorized>0) pieData.push({id:0,label:'Sem categoria',value:uncategorized,color:'#444'});
+
+  return `
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="metric"><div class="metric-label">Pendências Abertas</div><div class="metric-value">${pendOpen}</div><div class="metric-sub">${highPend.length} alta prioridade</div></div>
+    <div class="metric"><div class="metric-label">Alta Prioridade</div><div class="metric-value" style="color:#e07070">${highPend.length}</div><div class="metric-sub">requerem atenção</div></div>
+    <div class="metric"><div class="metric-label">Próximos Agendamentos</div><div class="metric-value">${upcoming.length}</div><div class="metric-sub">nos próximos dias</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Pendências por Empresa</span></div>
+      ${pieData.length?`
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        ${buildPieChart(pieData)}
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:8px">
+          ${pieData.map((d,i)=>`
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="viewCatTodos(${d.id})">
+            <div style="width:10px;height:10px;border-radius:50%;background:${d.color};flex-shrink:0"></div>
+            <span style="font-size:12px;color:#bbb;flex:1">${d.label}</span>
+            <span style="font-size:13px;font-weight:500;color:#e2e2e0">${d.value}</span>
+          </div>`).join('')}
+        </div>
+      </div>`:'<div class="empty">Crie categorias e vincule pendências para ver o gráfico</div>'}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" style="flex:1">
+        <div class="card-header"><span class="card-title">Próximos ${D.tabNames[1]}</span><button class="btn btn-sm" onclick="goTab('items')">Ver todos</button></div>
+        ${upcoming.length?upcoming.map(m=>{
+          const hasDate=!!(m.date&&m.date.length>4);
+          const[,mo,d]=hasDate?m.date.split('-'):['','','--'];
+          return `<div class="item-row" onclick="openItem(${m.id})">
+            <div class="date-box"><div class="date-day">${hasDate?d:'—'}</div><div class="date-month">${hasDate?MONTHS[parseInt(mo)-1].slice(0,3):'—'}</div></div>
+            <div class="item-info"><div class="item-title">${m.title}</div><div class="item-meta">${catBadge(m.cat)}<span style="font-size:11px;color:#444">${m.time||''}</span></div></div>
+          </div>`;}).join(''):`<div class="empty">Nenhum agendamento próximo</div>`}
+      </div>
+      <div class="card" style="flex:1">
+        <div class="card-header"><span class="card-title">Alta Prioridade</span><button class="btn btn-sm" onclick="goTab('todos')">Ver todas</button></div>
+        ${highPend.length?highPend.slice(0,5).map(t=>{const p=getPrio(t.prio);return `<div class="todo-row">
+          <div class="flag flag-${t.prio}"></div>
+          <div style="flex:1"><div style="font-size:13px;margin-bottom:2px;color:#e2e2e0">${t.text}</div>${t.catId?`<div style="font-size:11px;color:#444">→ ${getCatLabelById(t.catId)}</div>`:t.itemId?`<div style="font-size:11px;color:#444">→ ${getMeetingTitle(t.itemId)}</div>`:''}</div>
+          <span class="badge ${p.cls}">${p.label}</span>
+        </div>`;}).join(''):`<div class="empty" style="padding:1rem">Nenhuma de alta prioridade</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Items list ─────────────────────────────────────────────
+function renderItems(){
+  const filtered=S.catFilter==='all'?D.items:D.items.filter(m=>m.cat===S.catFilter);
+  const sorted=filtered.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const hasCats=D.categories.length>0;
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="section-lbl">${D.tabNames[1]} (${sorted.length})</div>
+    <div style="display:flex;gap:8px">
+      ${!hasCats?`<button class="btn btn-sm" style="color:#c49a3a;border-color:#3a2e00" onclick="goSettings()">+ Criar categorias primeiro</button>`:''}
+      <button class="btn btn-primary btn-sm" onclick="S.showNewItem=true;render();setTimeout(()=>{const e=document.getElementById('ni-title');e&&e.focus();},50)">+ Novo</button>
+    </div>
+  </div>
+  ${S.showNewItem?renderNewItemForm():''}
+  ${hasCats?`<div class="filters">
+    <button class="filter-btn ${S.catFilter==='all'?'active':''}" onclick="S.catFilter='all';render()">Todos</button>
+    ${D.categories.map(c=>`<button class="filter-btn ${S.catFilter===c.id?'active':''}" onclick="S.catFilter='${c.id}';render()">${c.name}</button>`).join('')}
+    ${S.catFilter!=='all'?`<button class="filter-btn" onclick="viewCatTodos(S.catFilter)" style="border-color:#5fa8e0;color:#5fa8e0">Ver pendências desta empresa</button>`:''}
+  </div>`:''}
+  <div class="card">
+    ${sorted.length?sorted.map(m=>{
+      const pends=D.todos.filter(t=>t.itemId===m.id&&!t.done);
+      const nf=(m.files||[]).length;
+      const hasDate=!!(m.date&&m.date.length>4);
+      const[,mo,d]=hasDate?m.date.split('-'):['','','--'];
+      return `<div class="item-row" onclick="openItem(${m.id})">
+        <div class="date-box" style="${hasDate?'':'opacity:0.3'}"><div class="date-day">${hasDate?d:'—'}</div><div class="date-month">${hasDate?MONTHS[parseInt(mo)-1].slice(0,3):'sem data'}</div></div>
+        <div class="item-info">
+          <div class="item-title">${m.title}</div>
+          <div class="item-meta">
+            ${catBadge(m.cat)}${statusBadge(m.status)}
+            ${m.notes?'<span style="font-size:10px;color:#444">● Notas</span>':''}
+            ${pends.length?`<span class="pend-dot">⚑ ${pends.length}</span>`:''}
+            ${nf?`<span style="font-size:10px;color:#5fa8e0">📎 ${nf}</span>`:''}
+          </div>
+        </div>
+        <span style="font-size:11px;color:#444;white-space:nowrap;flex-shrink:0">${m.time}</span>
+      </div>`;
+    }).join(''):`<div class="empty">Nenhum item encontrado</div>`}
+  </div>`;
+}
+
+function renderNewItemForm(){
+  return `<div class="modal">
+    <div style="font-size:14px;font-weight:500;margin-bottom:14px;color:#e2e2e0">Novo item</div>
+    <div class="form-grp"><label class="form-lbl">Título</label><input type="text" id="ni-title" placeholder="Ex: Reunião com João Silva"></div>
+    <div class="form-grid">
+      <div class="form-grp"><label class="form-lbl">Categoria</label>
+        <select id="ni-cat">
+          <option value="">Sem categoria</option>
+          ${D.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-grp"><label class="form-lbl">Status</label>
+        <select id="ni-status"><option value="none">Sem data/reuniao</option><option value="ag">Agendado</option><option value="done">Realizado</option><option value="canc">Cancelado</option></select>
+      </div>
+      <div class="form-grp"><label class="form-lbl">Data <span style="color:#444;font-weight:400">(opcional)</span></label><input type="date" id="ni-date"></div>
+      <div class="form-grp"><label class="form-lbl">Hora</label><input type="text" id="ni-time" placeholder="09:00"></div>
+    </div>
+    <div class="form-grp"><label class="form-lbl">Notas / Pauta</label><textarea id="ni-notes" placeholder="Pauta, participantes, observações..."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <label style="font-size:11px;color:#444;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="ni-outlook" style="width:auto"> Abrir no Outlook após salvar</label>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="S.showNewItem=false;render()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveItem()">Salvar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Item detail ────────────────────────────────────────────
+function renderDetail(){
+  const m=D.items.find(x=>x.id===S.selected);if(!m)return '';
+  const pends=D.todos.filter(t=>t.itemId===m.id),files=m.files||[];
+  return `
+  <div class="back-btn" onclick="S.selected=null;render()">← Voltar</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div style="font-size:17px;font-weight:500;margin-bottom:10px;color:#e2e2e0">${m.title}</div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          ${catBadge(m.cat)}${statusBadge(m.status)}
+          <span style="font-size:12px;color:#555">${fmtDate(m.date)}${m.time?' às '+m.time:''}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="openInOutlook(${m.id})" title="Abre o Outlook com este evento pré-preenchido" style="color:#5fa8e0;border-color:#0c1f2e;background:#0c1f2e">📅 Outlook</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem(${m.id})">Excluir</button>
+      </div>
+    </div>
+    <hr class="divider">
+    <label class="form-lbl" style="margin-bottom:8px;display:block">NOTAS / ATA</label>
+    <textarea id="notes-${m.id}" placeholder="Decisões, participantes, próximos passos...">${m.notes}</textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+      <button class="btn btn-primary btn-sm" onclick="saveNotes(${m.id})">Salvar notas</button>
+      <select id="ss-${m.id}" onchange="updateStatus(${m.id},this.value)" style="width:auto;padding:5px 10px;font-size:12px">
+        <option value="ag" ${m.status==='ag'?'selected':''}>Agendado</option>
+        <option value="done" ${m.status==='done'?'selected':''}>Realizado</option>
+        <option value="canc" ${m.status==='canc'?'selected':''}>Cancelado</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Documentos (${files.length})</span></div>
+    <div class="drop-zone" ondragover="doDragOver(event,${m.id})" ondragleave="doDragLeave(event,${m.id})" ondrop="doDrop(event,${m.id})" onclick="document.getElementById('fi-${m.id}').click()">
+      <div style="font-size:12px;color:#444">Arraste arquivos ou <span style="color:#5fa8e0;cursor:pointer">clique para selecionar</span></div>
+      <div style="font-size:10px;color:#2a2a2a;margin-top:3px">PDF, Word, Excel, imagens e outros</div>
+    </div>
+    <input type="file" id="fi-${m.id}" multiple style="display:none" onchange="onFileInput(event,${m.id})">
+    <div id="upst-${m.id}"></div>
+    ${files.map(f=>{const[ic,lb]=fileIcon(f.name);return `<div class="file-row">
+      <div class="file-ic ${ic}">${lb}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:#e2e2e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div><div style="font-size:10px;color:#444">${fmtSize(f.size)} · ${f.uploadedAt||''}</div></div>
+      <button class="btn btn-sm" onclick="dlFile(${f.dbId},'${f.name.replace(/'/g,"\\'")}')">Baixar</button>
+      <button class="btn btn-sm btn-danger" onclick="rmFile(${m.id},${f.dbId})" style="margin-left:4px">×</button>
+    </div>`;}).join('')}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Pendências</span><button class="btn btn-primary btn-sm" onclick="addTodoFor(${m.id})">+ Pendência</button></div>
+    ${pends.length?pends.map(t=>{const p=getPrio(t.prio);return `<div class="todo-row">
+      <div class="flag flag-${t.prio}"></div>
+      <div class="todo-check ${t.done?'checked':''}" onclick="toggleTodo(${t.id})">${t.done?'✓':''}</div>
+      <div style="flex:1"><div class="${t.done?'todo-done':''}" style="font-size:13px;color:#e2e2e0">${t.text}</div></div>
+      <span class="badge ${p.cls}">${p.label}</span>
+      <button class="btn btn-sm" onclick="startEditTodo(${t.id})" style="padding:2px 8px;margin-left:4px" title="Editar">✎</button>
+      <button class="btn btn-sm" onclick="deleteTodo(${t.id})" style="padding:2px 8px;margin-left:2px">×</button>
+    </div>`;}).join(''):`<div class="empty" style="padding:12px">Sem pendências</div>`}
+  </div>`;
+}
+
+// ── Calendar ───────────────────────────────────────────────
+function renderCalendar(){
+  const y=S.calY,mo=S.calM,fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate(),today=new Date();
+  const mDates=new Set(D.items.filter(m=>m.status!=='canc').map(m=>{const[my,mm,md]=m.date.split('-');return parseInt(my)===y&&parseInt(mm)-1===mo?parseInt(md):null;}).filter(Boolean));
+  let days='';for(let i=0;i<fd;i++)days+=`<div class="cal-day other-month"></div>`;
+  for(let d=1;d<=dim;d++){const isT=today.getFullYear()===y&&today.getMonth()===mo&&today.getDate()===d;days+=`<div class="cal-day ${isT?'today':''} ${mDates.has(d)?'has-item':''}">${d}</div>`;}
+  const dm=D.items.filter(m=>{const[my,mm]=m.date.split('-');return parseInt(my)===y&&parseInt(mm)-1===mo;}).sort((a,b)=>a.date.localeCompare(b.date));
+  return `
+  <div class="card">
+    <div class="card-header">
+      <button class="btn btn-sm" onclick="S.calM--;if(S.calM<0){S.calM=11;S.calY--;}render()">‹ Anterior</button>
+      <span class="card-title" style="font-size:15px">${MONTHS[mo]} ${y}</span>
+      <button class="btn btn-sm" onclick="S.calM++;if(S.calM>11){S.calM=0;S.calY++;}render()">Próximo ›</button>
+    </div>
+    <div class="cal-grid" style="margin-bottom:4px">${WDAYS.map(d=>`<div class="cal-hdr">${d}</div>`).join('')}${days}</div>
+    <div style="font-size:11px;color:#2a2a2a;margin-top:6px">● item agendado</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">${D.tabNames[1]} em ${MONTHS[mo]}</span></div>
+    ${dm.length?dm.map(m=>{const[,mm,md]=m.date.split('-');return `<div class="item-row" onclick="openItem(${m.id})">
+      <div class="date-box"><div class="date-day">${md}</div><div class="date-month">${MONTHS[parseInt(mm)-1].slice(0,3)}</div></div>
+      <div class="item-info"><div class="item-title">${m.title}</div><div class="item-meta">${catBadge(m.cat)}${statusBadge(m.status)}<span style="font-size:11px;color:#444">${m.time}</span></div></div>
+    </div>`;}).join(''):`<div class="empty">Nenhum item este mês</div>`}
+  </div>`;
+}
+
+// ── Todos ──────────────────────────────────────────────────
+function renderTodos(){
+  const open=D.todos.filter(t=>!t.done),closed=D.todos.filter(t=>t.done);
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="section-lbl">Pendências</div>
+    <button class="btn btn-primary" onclick="S.showNewTodo=true;render();setTimeout(()=>{const e=document.getElementById('nt-txt');e&&e.focus();},50)">+ Nova</button>
+  </div>
+  ${(S.showNewTodo||S.editingTodo!==null)?renderTodoForm(S.editingTodo!==null?D.todos.find(t=>t.id===S.editingTodo):null):''}
+  <div class="card">
+    <div class="card-header"><span class="card-title">Em Aberto</span><span style="font-size:12px;color:#444">${open.length} item${open.length!==1?'s':''}</span></div>
+    ${open.length?open.map(t=>{const p=getPrio(t.prio);return `<div class="todo-row">
+      <div class="flag flag-${t.prio}"></div>
+      <div class="todo-check" onclick="toggleTodo(${t.id})"></div>
+      <div style="flex:1"><div style="font-size:13px;margin-bottom:2px;color:#e2e2e0">${t.text}</div>${t.itemId?`<div style="font-size:11px;color:#444">→ ${getMeetingTitle(t.itemId)}</div>`:t.catId?`<div style="font-size:11px;color:#444">→ ${getCatLabelById(t.catId)}</div>`:''}</div>
+      <div style="display:flex;gap:6px;align-items:center"><span class="badge ${p.cls}">${p.label}</span><button class="btn btn-sm" onclick="startEditTodo(${t.id})" style="padding:2px 8px" title="Editar">✎</button><button class="btn btn-sm" onclick="deleteTodo(${t.id})" style="padding:2px 8px">×</button></div>
+    </div>`;}).join(''):`<div class="empty">Sem pendências abertas</div>`}
+  </div>
+  ${closed.length?`<div class="card">
+    <div class="card-header"><span class="card-title">Concluídas</span></div>
+    ${closed.map(t=>`<div class="todo-row"><div class="flag" style="background:#222"></div><div class="todo-check checked" onclick="toggleTodo(${t.id})">✓</div><div class="todo-done" style="flex:1;font-size:13px">${t.text}</div><button class="btn btn-sm" onclick="deleteTodo(${t.id})" style="padding:2px 8px">×</button></div>`).join('')}
+  </div>`:''}`;
+}
+
+// ── Cat Todos view ────────────────────────────────────────
+function renderCatTodos(){
+  const _cid=parseInt(S.selectedCat);
+  const cat=D.categories.find(c=>parseInt(c.id)===_cid);
+  if(!cat)return '<div class="empty">Categoria não encontrada.</div>';
+  const cl=CAT_COLORS[cat.colorIdx%8];
+  // todos linked to this cat directly OR via an item that belongs to this cat
+  const catItems=D.items.filter(m=>parseInt(m.cat)===_cid);
+  const catItemIds=new Set(catItems.map(m=>m.id));
+  const todos=D.todos.filter(t=>parseInt(t.catId)===_cid||catItemIds.has(parseInt(t.itemId)));
+  const open=todos.filter(t=>!t.done),closed=todos.filter(t=>t.done);
+  return `
+  <div class="back-btn" onclick="S.tab='items';S.selectedCat=null;renderTabs();render()">← Voltar</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <span class="badge ${cl}" style="font-size:13px;padding:5px 14px">${cat.name}</span>
+    <span style="font-size:12px;color:#555">${todos.length} pendência${todos.length!==1?'s':''} no total</span>
+    <button class="btn btn-primary btn-sm" onclick="addTodoForCat(${cat.id})" style="margin-left:auto">+ Nova pendência</button>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Em Aberto</span><span style="font-size:12px;color:#444">${open.length} item${open.length!==1?'s':''}</span></div>
+    ${open.length?open.map(t=>{const p=getPrio(t.prio);const linked=t.itemId?`<div style="font-size:11px;color:#444">→ ${getMeetingTitle(t.itemId)}</div>`:'';return `<div class="todo-row">
+      <div class="flag flag-${t.prio}"></div>
+      <div class="todo-check" onclick="toggleTodo(${t.id})"></div>
+      <div style="flex:1"><div style="font-size:13px;margin-bottom:2px;color:#e2e2e0">${t.text}</div>${linked}</div>
+      <div style="display:flex;gap:5px;align-items:center"><span class="badge ${p.cls}">${p.label}</span><button class="btn btn-sm" onclick="startEditTodo(${t.id})" style="padding:2px 8px" title="Editar">✎</button><button class="btn btn-sm" onclick="deleteTodo(${t.id})" style="padding:2px 8px">×</button></div>
+    </div>`;}).join(''):`<div class="empty">Sem pendências abertas</div>`}
+  </div>
+  ${closed.length?`<div class="card">
+    <div class="card-header"><span class="card-title">Concluídas</span></div>
+    ${closed.map(t=>`<div class="todo-row"><div class="flag" style="background:#222"></div><div class="todo-check checked" onclick="toggleTodo(${t.id})">✓</div><div class="todo-done" style="flex:1;font-size:13px">${t.text}</div><button class="btn btn-sm" onclick="deleteTodo(${t.id})" style="padding:2px 8px">×</button></div>`).join('')}
+  </div>`:''}
+  ${catItems.length?`<div class="card">
+    <div class="card-header"><span class="card-title">Assuntos relacionados</span></div>
+    ${catItems.map(m=>{const hasDate=!!(m.date&&m.date.length>4);const[,mo,d]=hasDate?m.date.split('-'):['','','--'];return `<div class="item-row" onclick="openItem(${m.id})">
+      <div class="date-box" style="${hasDate?'':'opacity:0.3'}"><div class="date-day">${hasDate?d:'—'}</div><div class="date-month">${hasDate?MONTHS[parseInt(mo)-1].slice(0,3):'sem data'}</div></div>
+      <div class="item-info"><div class="item-title">${m.title}</div><div class="item-meta">${statusBadge(m.status)}</div></div>
+    </div>`;}).join('')}
+  </div>`:''}`;
+}
+
+// ── Settings ───────────────────────────────────────────────
+function renderSettings(){
+  return `
+  <div class="card">
+    <div class="card-header"><span class="card-title">Categorias</span><button class="btn btn-primary btn-sm" onclick="addCategory()">+ Nova categoria</button></div>
+    <div style="font-size:11px;color:#444;margin-bottom:12px">Crie e personalize as categorias do seu jeito.</div>
+    ${D.categories.length?D.categories.map((c,i)=>`<div class="set-row">
+      <div class="cat-color-dot" style="background:${catDotColor(c.colorIdx)}"></div>
+      <div style="flex:1;font-size:13px;color:#e2e2e0">${c.name}</div>
+      <button class="btn-ghost" onclick="editCategory(${c.id})">✎ Renomear</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id})">×</button>
+    </div>`).join(''):`<div class="empty">Nenhuma categoria criada ainda.<br>Clique em "+ Nova categoria" para começar.</div>`}
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Renomear Abas</span></div>
+    ${TAB_IDS.map((id,i)=>`<div class="set-row">
+      <span class="set-lbl">Aba ${i+1}</span>
+      <input id="tn-${i}" value="${D.tabNames[i]}" style="flex:1">
+      <button class="btn btn-sm btn-primary" onclick="saveTabName(${i})" style="margin-left:8px;flex-shrink:0">Salvar</button>
+    </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Título do Dashboard</span></div>
+    <div class="set-row">
+      <span class="set-lbl">Título</span>
+      <input id="dt-input" value="${D.dashTitle}" style="flex:1">
+      <button class="btn btn-sm btn-primary" onclick="saveDashTitle()" style="margin-left:8px;flex-shrink:0">Salvar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Backup dos Dados</span></div>
+    <div style="font-size:11px;color:#444;margin-bottom:14px">Exporte seus dados para um arquivo JSON. Use para fazer backup ou transferir para outro navegador/computador.</div>
+    <div class="set-row">
+      <span class="set-lbl">Exportar</span>
+      <div style="flex:1;font-size:12px;color:#555">Baixa um arquivo .json com todos os dados</div>
+      <button class="btn btn-primary btn-sm" onclick="exportData()" style="flex-shrink:0">Exportar dados</button>
+    </div>
+    <div class="set-row" style="margin-top:4px">
+      <span class="set-lbl">Importar</span>
+      <div style="flex:1;font-size:12px;color:#555">Restaura dados de um backup anterior</div>
+      <div style="flex-shrink:0">
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="btn btn-sm" style="color:#c49a3a;border-color:#3a2e00;background:#1a1600" onclick="document.getElementById('import-file').click()">Importar dados</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#333;margin-top:10px">Atencao: importar substitui todos os dados atuais. Exporte antes se quiser preservar o que esta aqui.</div>
+  </div>`;
+}
+
+function catDotColor(idx){const clrs=['#5fa8e0','#6dbf5a','#c49a3a','#9b8ee0','#e07070','#4ecfa0','#e07ab0','#d4b84a'];return clrs[idx%8];}
+
+window.saveTabName=i=>{const e=document.getElementById('tn-'+i);if(e&&e.value.trim()){D.tabNames[i]=e.value.trim();save();renderTabs();render();}};
+window.saveDashTitle=()=>{const e=document.getElementById('dt-input');if(e&&e.value.trim()){D.dashTitle=e.value.trim();save();const t=document.getElementById('top-title');if(t)t.textContent=D.dashTitle;}};
+window.addCategory=()=>{
+  const n=prompt('Nome da nova categoria:');
+  if(n&&n.trim()){
+    const idx=D.categories.length%8;
+    D.categories.push({id:D.nextCatId++,name:n.trim(),colorIdx:idx});
+    save();render();
+  }
+};
+window.editCategory=id=>{
+  const c=D.categories.find(x=>x.id===id);if(!c)return;
+  const n=prompt(`Renomear "${c.name}":`,c.name);
+  if(n&&n.trim()){c.name=n.trim();save();render();}
+};
+window.deleteCategory=id=>{
+  if(!confirm('Excluir esta categoria? Os itens vinculados ficarão sem categoria.'))return;
+  D.categories=D.categories.filter(c=>c.id!==id);
+  D.items.forEach(m=>{if(m.cat===id)m.cat='';});
+  save();render();
+};
+
+// ── Item actions ───────────────────────────────────────────
+window.openItem=id=>{S.selected=id;S.tab='items';renderTabs();render();};
+
+window.openInOutlook=id=>{
+  const m=D.items.find(x=>x.id===id);
+  if(!m||!m.date){alert('Este item nao tem data definida.');return;}
+  const [y,mo,d]=m.date.split('-');
+  const time=m.time||'09:00';
+  const parts=time.split(':');
+  const hh=parts[0]||'09',mm=parts[1]||'00';
+  const pad=s=>String(s).padStart(2,'0');
+  const startDt=y+'-'+mo+'-'+d+'T'+pad(hh)+':'+pad(mm)+':00';
+  const endDt=y+'-'+mo+'-'+d+'T'+pad(parseInt(hh)+1)+':'+pad(mm)+':00';
+  const url='https://outlook.office.com/calendar/0/deeplink/compose?subject='+encodeURIComponent(m.title)+'&startdt='+startDt+'&enddt='+endDt+'&body='+encodeURIComponent(m.notes||'')+'&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent';
+  window.open(url,'_blank');
+};
+
+window.saveItem=()=>{
+  const title=document.getElementById('ni-title').value.trim(),date=document.getElementById('ni-date').value;
+  if(!title){alert('Preencha o titulo.');return;}
+  const catVal=document.getElementById('ni-cat').value;
+  const sendToOutlook=document.getElementById('ni-outlook')&&document.getElementById('ni-outlook').checked;
+  const newId=D.nextItemId++;
+  D.items.push({id:newId,title,cat:catVal?parseInt(catVal):'',date,time:document.getElementById('ni-time').value||'',status:document.getElementById('ni-status').value,notes:document.getElementById('ni-notes').value,files:[]});
+  save();S.showNewItem=false;render();
+  if(sendToOutlook)setTimeout(()=>window.openInOutlook(newId),300);
+};
+window.deleteItem=id=>{
+  if(!confirm('Excluir este item e seus anexos?'))return;
+  const m=D.items.find(x=>x.id===id);
+  if(m&&m.files)m.files.forEach(f=>dbDel(f.dbId).catch(()=>{}));
+  D.items=D.items.filter(m=>m.id!==id);
+  S.selected=null;save();render();
+};
+window.saveNotes=id=>{const e=document.getElementById('notes-'+id);if(e){const m=D.items.find(x=>x.id===id);if(m){m.notes=e.value;save();}}};
+window.updateStatus=(id,val)=>{const m=D.items.find(x=>x.id===id);if(m){m.status=val;save();}};
+
+// ── Todo form (shared new + edit) ─────────────────────────
+function renderTodoForm(t){
+  const isEdit=!!t;
+  const txt=t?t.text:'';
+  const prio=t?t.prio:'med';
+  const ltype=t?(t.catId?'cat':t.itemId?'item':'none'):'none';
+  const itemId=t?t.itemId:'';
+  const catId=t?t.catId:'';
+  return `<div class="modal">
+    <div style="font-size:14px;font-weight:500;margin-bottom:14px;color:#e2e2e0">${isEdit?'Editar Pendência':'Nova Pendência'}</div>
+    <div class="form-grp"><label class="form-lbl">Descrição</label><input type="text" id="nt-txt" value="${txt.replace(/"/g,'&quot;')}" placeholder="Ex: Enviar proposta para cliente X"></div>
+    <div class="form-grid">
+      <div class="form-grp"><label class="form-lbl">Prioridade</label>
+        <select id="nt-prio">
+          ${PRIOS.map(p=>`<option value="${p.id}" ${prio===p.id?'selected':''}>${p.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-grp"><label class="form-lbl">Tipo de vínculo</label>
+        <select id="nt-link-type" onchange="toggleTodoLinkType()">
+          <option value="none" ${ltype==='none'?'selected':''}>Nenhum</option>
+          <option value="item" ${ltype==='item'?'selected':''}>Assunto específico</option>
+          <option value="cat" ${ltype==='cat'?'selected':''}>Empresa / Categoria</option>
+        </select>
+      </div>
+    </div>
+    <div id="nt-link-item" style="display:${ltype==='item'?'flex':'none'}" class="form-grp">
+      <label class="form-lbl">Assunto</label>
+      <select id="nt-item"><option value="">Selecione...</option>${D.items.map(m=>`<option value="${m.id}" ${itemId==m.id?'selected':''}>${m.title.slice(0,40)}</option>`).join('')}</select>
+    </div>
+    <div id="nt-link-cat" style="display:${ltype==='cat'?'flex':'none'}" class="form-grp">
+      <label class="form-lbl">Empresa / Categoria</label>
+      <select id="nt-cat"><option value="">Selecione...</option>${D.categories.map(c=>`<option value="${c.id}" ${catId==c.id?'selected':''}>${c.name}</option>`).join('')}</select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="S.showNewTodo=false;S.editingTodo=null;render()">Cancelar</button>
+      <button class="btn btn-primary" onclick="${isEdit?'updateTodo('+t.id+')':'saveTodo()'}">Salvar</button>
+    </div>
+  </div>`;
+}
+
+// ── Todo actions ───────────────────────────────────────────
+window.saveTodo=()=>{
+  const text=document.getElementById('nt-txt').value.trim();
+  if(!text){alert('Digite a descricao.');return;}
+  const ltype=document.getElementById('nt-link-type').value;
+  const _rawItem=ltype==='item'&&document.getElementById('nt-item')?parseInt(document.getElementById('nt-item').value):0;
+  const _rawCat=ltype==='cat'&&document.getElementById('nt-cat')?parseInt(document.getElementById('nt-cat').value):0;
+  const itemId=_rawItem||'';
+  const catId=_rawCat||'';
+  D.todos.push({id:D.nextTodoId++,text,prio:document.getElementById('nt-prio').value,done:false,itemId,catId});
+  save();S.showNewTodo=false;render();
+};
+window.toggleTodoLinkType=()=>{
+  const v=document.getElementById('nt-link-type').value;
+  const di=document.getElementById('nt-link-item'),dc=document.getElementById('nt-link-cat');
+  if(di)di.style.display=v==='item'?'flex':'none';
+  if(dc)dc.style.display=v==='cat'?'flex':'none';
+};
+window.startEditTodo=id=>{S.editingTodo=id;S.showNewTodo=false;S.tab='todos';S.selected=null;renderTabs();render();setTimeout(()=>{const e=document.getElementById('nt-txt');e&&(e.focus(),e.select());},50);};
+window.updateTodo=id=>{
+  const t=D.todos.find(x=>x.id===id);if(!t)return;
+  const txt=document.getElementById('nt-txt').value.trim();if(!txt){alert('Digite a descricao.');return;}
+  const ltype=document.getElementById('nt-link-type').value;
+  t.text=txt;
+  t.prio=document.getElementById('nt-prio').value;
+  const _uItem=ltype==='item'&&document.getElementById('nt-item')?parseInt(document.getElementById('nt-item').value):0;
+  const _uCat=ltype==='cat'&&document.getElementById('nt-cat')?parseInt(document.getElementById('nt-cat').value):0;
+  t.itemId=_uItem||'';
+  t.catId=_uCat||'';
+  save();S.editingTodo=null;render();
+};
+window.toggleTodo=id=>{const t=D.todos.find(x=>x.id===id);if(t){t.done=!t.done;save();render();}};
+window.deleteTodo=id=>{D.todos=D.todos.filter(t=>t.id!==id);save();render();};
+window.addTodoFor=itemId=>{S.tab='todos';S.selected=null;S.showNewTodo=true;renderTabs();render();setTimeout(()=>{const e=document.getElementById('nt-item');if(e)e.value=itemId;},100);};
+window.viewCatTodos=catId=>{S.selectedCat=parseInt(catId);S.tab='cattodos';renderTabs();render();};
+
+// ── File actions ───────────────────────────────────────────
+window.doDragOver=(e,mid)=>{e.preventDefault();e.currentTarget.classList.add('drag-over');};
+window.doDragLeave=(e,mid)=>{e.currentTarget.classList.remove('drag-over');};
+window.doDrop=(e,mid)=>{e.preventDefault();e.currentTarget.classList.remove('drag-over');uploadFiles(Array.from(e.dataTransfer.files),mid);};
+window.onFileInput=(e,mid)=>{uploadFiles(Array.from(e.target.files),mid);e.target.value='';};
+
+function uploadFiles(files,mid){
+  if(!files.length)return;
+  const st=document.getElementById('upst-'+mid);
+  if(st)st.innerHTML=`<div class="upbar"><div class="upbar-fill" id="ub-${mid}" style="width:0%"></div></div><div style="font-size:11px;color:#555;margin-top:5px">Carregando ${files.length} arquivo${files.length>1?'s':''}...</div>`;
+  let done=0;
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=async ev=>{
+      try{
+        const dbId=await dbAdd({itemId:mid,name:file.name,type:file.type,size:file.size,data:ev.target.result,uploadedAt:new Date().toLocaleDateString('pt-BR')});
+        const m=D.items.find(x=>x.id===mid);
+        if(m){if(!m.files)m.files=[];m.files.push({dbId,name:file.name,size:file.size,uploadedAt:new Date().toLocaleDateString('pt-BR')});}
+        save();
+      }catch(e){console.error(e);}
+      done++;
+      const bar=document.getElementById('ub-'+mid);if(bar)bar.style.width=Math.round(done/files.length*100)+'%';
+      if(done===files.length)setTimeout(()=>render(),500);
+    };
+    r.readAsDataURL(file);
+  });
+}
+window.dlFile=async(dbId,name)=>{try{const r=await dbGet(dbId);if(!r){alert('Arquivo não encontrado.');return;}const a=document.createElement('a');a.href=r.data;a.download=name;a.click();}catch(e){alert('Erro ao baixar.');}};
+window.rmFile=async(mid,dbId)=>{if(!confirm('Remover este arquivo?'))return;try{await dbDel(dbId);}catch(e){}const m=D.items.find(x=>x.id===mid);if(m)m.files=(m.files||[]).filter(f=>f.dbId!==dbId);save();render();};
+
+// ── addTodoForCat ──────────────────────────────────────────
+window.addTodoForCat=catId=>{catId=parseInt(catId);
+  S.tab='todos';S.selectedCat=null;S.showNewTodo=true;S.editingTodo=null;
+  renderTabs();render();
+  setTimeout(()=>{
+    const lt=document.getElementById('nt-link-type');
+    if(lt){lt.value='cat';toggleTodoLinkType();
+      const nc=document.getElementById('nt-cat');if(nc)nc.value=catId;}
+  },100);
+};
+
+// ── Export / Import ────────────────────────────────────────
+window.exportData=()=>{
+  const payload=JSON.stringify(D,null,2);
+  const blob=new Blob([payload],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  a.href=url;a.download='dashboard-backup-'+date+'.json';a.click();
+  URL.revokeObjectURL(url);
+};
+
+window.importData=e=>{
+  const file=e.target.files[0];if(!file)return;
+  if(!confirm('Isso vai substituir TODOS os dados atuais pelo arquivo importado. Tem certeza?')){e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!imported.items||!imported.todos){alert('Arquivo inválido ou corrompido.');return;}
+      D=imported;save();renderTabs();render();
+      alert('Dados importados com sucesso!');
+    }catch(err){alert('Erro ao importar: arquivo inválido.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+};
+
+// ── Start ──────────────────────────────────────────────────
+openDB().then(()=>{renderTabs();render();}).catch(()=>{renderTabs();render();});
+</script>
+</body>
+</html>
